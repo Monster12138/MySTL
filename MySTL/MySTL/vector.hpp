@@ -3,6 +3,7 @@
 template<class T>
 class vector
 {
+
 public:
 	typedef T value_type;
 	typedef value_type* pointer;
@@ -10,6 +11,7 @@ public:
 	typedef value_type& reference;
 	typedef size_t size_type;
 	typedef value_type*& difference_type;
+
 protected:
 	iterator start;				//正在使用的空间首地址
 	iterator finish;			//正在使用的空间尾地址
@@ -23,8 +25,8 @@ public:
 	vector():start(0), finish(0), end_of_storage(0) {}
 	vector(size_type n, const reference value) { fill_initialize(n, value); }
 	explicit vector(size_type n) { fill_initialize(n, T()); }
-	
-	~vector();
+
+	~vector() {}
 
 	iterator begin() { return start; }
 	iterator end() { return finish; }
