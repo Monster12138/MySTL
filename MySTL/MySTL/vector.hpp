@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 template<class T>
 class vector
 {
@@ -17,16 +19,48 @@ protected:
 	iterator finish;			//正在使用的空间尾地址
 	iterator end_of_storage;	//目前可用的空间尾地址
 
-	void insert_aux(iterator position, const reference x);
-	void deallocate();
-	void fill_initialize(size_type n, const reference x);
-	void copy(iterator start, iterator end, iterator dst);
 public:
 	vector():start(0), finish(0), end_of_storage(0) {}
-	vector(size_type n, const reference value) { fill_initialize(n, value); }
-	explicit vector(size_type n) { fill_initialize(n, T()); }
+	vector(int n, const T& value = T()) :start(0), finish(0), end_of_storage(0)
+	{
+		reserve(n);
+		for (auto i = 0; i < n; ++i)
+		{
+			push_back(value);
+		}
+	}
 
-	~vector() {}
+	vector(vector &v) :start(0), finish(0), end_of_storage(0)
+	{
+		reserve(v.capacity());
+		for (auto i = 0; i < v.size(); ++i)
+		{
+			*(start + i) = v[i];
+		}
+
+		finish = start + v.size();
+		end_of_storage = start + v.capacity();
+	}
+
+	template<class InputIterator>
+	vector(InputIterator first, InputIterator last)
+	{
+		reserve(last - first);
+		while (first != last)
+		{
+			push_back(*first);
+			++first;
+		}
+	}
+
+	~vector() 
+	{
+		if (start)
+		{
+			delete[] start;
+			start = finish = end_of_storage = nullptr;
+		}
+	}
 
 	iterator begin() { return start; }
 	iterator end() { return finish; }
@@ -37,7 +71,30 @@ public:
 
 	reference front() { return *start; }
 	reference back() { return *(finish - 1); }
-	void push_back(const reference value)
+
+	void reserve(size_type n)
+	{
+		if (n > capacity())
+		{
+			int sz = size();
+			T* tmp = new T[n];
+			
+			if (start)
+			{
+				for (auto i = 0; i < sz; ++i)
+				{
+					tmp[i] = start[i];
+				}
+				delete[] start;
+			}
+
+			start = tmp;
+			finish = start + sz;
+			end_of_storage = start + n;
+		}
+	}
+
+	void push_back(const T& value)
 	{
 		if (finish != end_of_storage)
 		{
@@ -45,7 +102,9 @@ public:
 		}
 		else
 		{
-			insert_aux(finish, value);
+			int n = (size() == 0 ? 1 : 2 * size());
+			reserve(n);
+			*(finish++) = value;
 		}
 	}
 
@@ -56,9 +115,12 @@ public:
 
 	iterator erase(iterator position)
 	{
-		if (position + 1 ！= finish)
+		if (position + 1 != finish)
 		{
-			copy(position + 1, finish, position);
+			for (auto it = position + 1; it != finish; ++it)
+			{
+				*(it - 1) = *it;
+			}
 		}
 		pop_back();
 		return position;
@@ -66,20 +128,30 @@ public:
 
 	iterator erase(iterator start, iterator end)
 	{
+		if (end != finish)
+		{
+			for (auto it = end; it != finish; ++it, ++start)
+			{
+				*start = *it;
+			}
+		}
+		finish = start;
 
+		return start;
 	}
 
-	iterator insert(iterator position, size_type count, const reference value)
-	{
-
-	}
-
-	void resize(size_type new_size, const reference value)
+	void resize(size_type new_size, const T& value)
 	{
 		if (new_size < size())
 			erase(begin() + new_size, end());
 		else
-			insert(end(), new_size - size(), value);
+		{
+			int sz = size();
+			for (auto i = 0; i < new_size - sz; ++i)
+			{
+				push_back(T());
+			}
+		}
 	}
 
 	void resize(size_type new_size)
@@ -90,5 +162,14 @@ public:
 	void clear()
 	{
 		erase(start, finish);
+	}
+
+	void printAll()
+	{
+		for (auto it = start; it != finish; ++it)
+		{
+			std::cout << *it << " ";
+		}
+		std::cout << std::endl;
 	}
 };
