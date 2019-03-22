@@ -1,10 +1,17 @@
 #include "vector.hpp"
 #include <iostream>
-
+#include "list.hpp"
 using namespace std;
 
 int main()
 {
+	ListNode<int> ln(2);
+	ListIterator<int, int&, int*> it;
+	ListReverseIterator<int, int&, int*, ListIterator<int, int&, int*>> rit;
+
+
+	//vector≤‚ ‘
+#if 0
 	vector<int> vec;
 	vector<int> vec2(5, 1);
 	vector<int> vec3(vec2);
@@ -28,5 +35,6 @@ int main()
 	vec.erase(vec.end() - 1);
 	cout << "size: " << vec.size() << " capacity: " << vec.capacity() << endl;
 	vec.printAll();
+#endif
 	return 0;
 }
