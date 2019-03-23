@@ -9,7 +9,22 @@ int main()
 	ListIterator<int, int&, int*> it;
 	ListReverseIterator<int, int&, int*, ListIterator<int, int&, int*>> rit;
 
+	List<int> l1;
+	List<int> l2(5, 1);
+	List<int> l3(l2);
 
+	l1.push_back(1);
+	l1.push_back(2);
+	l1.push_back(3);
+	l1.push_back(4);
+	l1.push_back(5);
+	l1.pop_back();
+	l1.insert(l1.begin(), 6);
+	l1.erase(l1.begin());
+	l1.PrintList();
+	l1.clear();
+	cout << "size: " << l1.size() << endl;
+	cout << "empty: " << l1.empty() << endl;
 	//vector²âÊÔ
 #if 0
 	vector<int> vec;

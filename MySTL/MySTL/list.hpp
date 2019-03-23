@@ -1,13 +1,15 @@
 #pragma once
+#include <iostream>
+
 template<class T>
 struct ListNode
 {
 	T _value;
-	ListNode *_pre;
-	ListNode *_next;
+	ListNode<T> *_pre;
+	ListNode<T> *_next;
 
-	ListNode(T v, ListNode *pre = nullptr, ListNode *next = nullptr)
-		:_value(v), _pre(pre), _next(next) 
+	ListNode(const T& v = T())
+		:_value(v), _pre(nullptr), _next(nullptr) 
 	{}
 };
 
@@ -68,4 +70,275 @@ public:
 	
 	bool operator!=(const Self& s) { return _it != s._it; }
 	bool operator==(const Self& s) { return _it == s._it; }
+};
+
+template <class T>
+class List
+{
+	typedef ListNode<T> Node;
+	typedef Node* pNode;
+
+	typedef ListIterator<T, T&, T*> Iterator;
+	typedef ListIterator<T, const T&, const T*> ConstIterator;
+	typedef ListReverseIterator<T, T&, T*, Iterator> ReverseIterator;
+	typedef ListReverseIterator<T, const T&, const T*, ConstIterator> ConstReverseIterator;
+
+private:
+	pNode _head;
+
+	void CreatHead()
+	{
+		_head = new Node;
+		_head->_pre = _head;
+		_head->_next = _head;
+	}
+public:
+	List()
+	{
+		CreatHead();
+	}
+
+	List(int n, const T& v)
+	{
+		CreatHead();
+		while (n--)
+		{
+			push_back(v);
+		}
+	}
+
+	template<class Iterator>
+	List(Iterator first, Iterator last)
+	{
+		CreatHead();
+		while (first != last)
+		{
+			push_back(*first);
+			++first;
+		}
+	}
+
+	List(const List<T>& l)
+	{
+		CreatHead();
+
+		List tmp(l.cbegin(), l.cend());
+		this->Swap(tmp);
+	}
+
+	List<T>& operator=(const List<T>& l)
+	{
+		if (this != &l)
+		{
+			List tmp(l.begin(), l.end());
+			this->Swap(tmp);
+		}
+		return *this;
+	}
+
+	~List()
+	{
+		clear();
+		delete _head;
+		_head = nullptr;
+	}
+
+	Iterator begin()
+	{
+		return Iterator(_head->_next);
+	}
+
+	Iterator end()
+	{
+		return Iterator(_head);
+	}
+
+	ReverseIterator rbegin()
+	{
+		return ReverseIterator(end());
+	}
+
+	ReverseIterator rend()
+	{
+		return ReverseIterator(begin());
+	}
+
+	ConstIterator cbegin()const
+	{
+		return ConstIterator(_head->_next);
+	}
+
+	ConstIterator cend()const
+	{
+		return ConstIterator(_head);
+	}
+
+	ConstReverseIterator crbegin()const
+	{
+		return ConstReverseIterator(cend());
+	}
+
+	ConstReverseIterator crend()const
+	{
+		return ConstReverseIterator(cbegin());
+	}
+
+	size_t size()const
+	{
+		size_t sz = 0;
+		
+		for (auto it = cbegin(); it != cend(); ++it)
+		{
+			++sz;
+		}
+
+		return sz;
+	}
+
+	bool empty()const
+	{
+		return _head->_next == _head;
+	}
+
+	void resize(size_t new_size, const T& v = T())
+	{
+		size_t old_size = size();
+		if (old_size < new_size)
+		{
+			for (size_t i = old_size; i < new_size; ++i)
+			{
+				push_back(v);
+			}
+		}
+		else
+		{
+			for (size_t i = new_size; i < old_size; ++i)
+			{
+				pop_back();
+			}
+		}
+	}
+
+	T& front()
+	{
+		return *_head->_next->_value;
+	}
+
+	const T& front()const
+	{
+		return *_head->_next->_value;
+	}
+
+	T& back()
+	{
+		return *_head->_pre->_value;
+	}
+
+	const T& back()const
+	{
+		return *_head->_pre->_value;
+	}
+
+	void push_back(const T& v)
+	{
+		pNode pnew_node = new Node(v);
+
+		pnew_node->_pre = _head->_pre;
+		pnew_node->_next = _head;
+
+		_head->_pre->_next = pnew_node;	
+		_head->_pre = pnew_node;
+	}
+
+	void pop_back()
+	{
+		pNode del = _head->_pre;
+
+		if (del != _head)
+		{
+			del->_pre->_next = _head;
+			_head->_pre = del->_pre;
+
+			delete del;
+		}
+	}
+
+	void push_front(const T& v)
+	{
+		pNode pnew_node = new Node(v);
+
+		pnew_node->_pre = _head;
+		pnew_node->_next = _head->_next;
+
+		_head->_next->_pre = pnew_node;
+		_head->_next = pnew_node;
+	}
+
+	void pop_front()
+	{
+		pNode del = _head->_next;
+		if (del != _head)
+		{
+			del->_next->_pre = _head;
+			_head->_next = del->_next;
+
+			delete del;
+		}
+	}
+
+	Iterator insert(Iterator pos, const T& v)
+	{
+		pNode pnew_node = new Node(v);
+
+		pNode cur = pos._ptr;
+		pnew_node->_next = cur;
+		pnew_node->_pre = cur->_pre;
+
+		cur->_pre->_next = pnew_node;
+		cur->_pre = pnew_node;
+
+		return Iterator(pnew_node);
+	}
+
+	Iterator erase(Iterator pos)
+	{
+		pNode del = pos._ptr;
+		
+		del->_pre->_next = del->_next;
+		del->_next->_pre = del->_pre;
+
+		pNode next = del->_next;
+		delete del;
+
+		return Iterator(next);
+	}
+
+	void clear()
+	{
+		pNode cur = _head->_next;
+
+		while (cur != _head)
+		{
+			_head->_next = cur->_next;
+			delete cur;
+			cur = _head->_next;
+		}
+
+		_head->_next = _head;
+		_head->_pre = _head;
+	}
+
+	void Swap(List<T> &l)
+	{
+		swap(_head, l._head);
+	}
+
+	void PrintList()
+	{
+		for (auto it = begin(); it != end(); ++it)
+		{
+			std::cout << *it << " ";
+		}
+		std::cout << std::endl;
+	}
 };
