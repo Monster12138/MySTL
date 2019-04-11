@@ -1,10 +1,14 @@
 #include "vector.hpp"
 #include <iostream>
 #include "list.hpp"
+#include "RBTree.hpp"
 using namespace std;
 
 int main()
 {
+	TestRBTree();
+
+#if 0
 	ListNode<int> ln(2);
 	ListIterator<int, int&, int*> it;
 	ListReverseIterator<int, int&, int*, ListIterator<int, int&, int*>> rit;
@@ -25,6 +29,7 @@ int main()
 	l1.clear();
 	cout << "size: " << l1.size() << endl;
 	cout << "empty: " << l1.empty() << endl;
+#endif
 	//vector²âÊÔ
 #if 0
 	vector<int> vec;
