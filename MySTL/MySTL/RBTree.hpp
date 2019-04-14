@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 enum Color{RED, BLACK};
 
 template <class T>
@@ -97,7 +98,7 @@ public:
 						if (cur == pParent->_right)
 						{
 							RouteL(pParent);
-							swap(cur, pParent);
+							std::swap(cur, pParent);
 						}
 						
 						//情况二
@@ -123,7 +124,7 @@ public:
 						if (cur == pParent->_left)
 						{
 							RouteR(pParent);
-							swap(cur, pParent);
+							std::swap(cur, pParent);
 						}
 
 						pParent->_color = BLACK;
@@ -143,7 +144,7 @@ public:
 	void Inorder()
 	{
 		_Inorder(GetRoot());
-		cout << endl;
+		std::cout << std::endl;
 	}
 
 	bool IsRBTree()
@@ -155,7 +156,7 @@ public:
 
 		if (RED == pRoot->_color)
 		{
-			cout << "违反性质2，根节点颜色为红色\n";
+			std::cout << "违反性质2，根节点颜色为红色\n";
 			return false;
 		}
 
@@ -272,7 +273,7 @@ private:
 		if (pRoot)
 		{
 			_Inorder(pRoot->_left);
-			cout << pRoot->_data << " ";
+			std::cout << pRoot->_data << " ";
 			_Inorder(pRoot->_right);
 		}
 	}
@@ -299,7 +300,7 @@ private:
 		PNode pParent = pRoot->_parent;
 		if (pParent && RED == pRoot->_color && RED == pParent->_color)
 		{
-			cout << "违反了性质3，有连在一起的红色节点\n";
+			std::cout << "违反了性质3，有连在一起的红色节点\n";
 			return false;
 		}
 
@@ -307,7 +308,7 @@ private:
 		{
 			if (black_count != pathBlack)
 			{
-				cout << "违反性质4，路径中黑色节点个数不同\n";
+				std::cout << "违反性质4，路径中黑色节点个数不同\n";
 
 				return false;
 			}

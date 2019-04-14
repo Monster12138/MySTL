@@ -21,19 +21,20 @@ class ListIterator
 public:
 	Node *_ptr;
 
-	ListIterator(Node *p = nullptr) :_ptr(p) {}
+	ListIterator() {}
+	ListIterator(Node *p) :_ptr(p) {}
 	ListIterator(const Self& it) :_ptr(it._ptr) {}
 
-	Node& operator*() { return *_ptr; }
-	Node& operator->() { return *_ptr; }
+	Ref operator*()const { return (*_ptr)._value; }
+	Ptr operator->()const { return &(operator*()); }
 
 	Self& operator++() { _ptr = _ptr->_next; return *this; }
 	Self& operator++(int) { Self tmp(*this); _ptr = _ptr->_next; return tmp; }
 	Self& operator--() { _ptr = _ptr->_pre; return *this; }
 	Self& operator--(int) { Self tmp(*this); _ptr = _ptr->_pre; return tmp; }
 
-	bool operator!=(const Self& l) { return _ptr != l._ptr; }
-	bool operator==(const Self& l) { return !(*this != l); }
+	bool operator!=(const Self& l)const { return _ptr != l._ptr; }
+	bool operator==(const Self& l)const { return !(*this != l); }
 };
 
 template<class T, class Ref, class Ptr, class Iterator>
@@ -52,29 +53,30 @@ public:
 		:_it(l.it)
 	{}
 
-	Ref operator*()
+	Ref operator*()const
 	{
 		Iterator temp(_it);
 		return *(--temp);
 	}
 
-	Ptr operator->()
+	Ptr operator->()const
 	{
-		return &operator*();
+		return &(operator*());
 	}
 
-	Self& operator++() { --_it; return this; }
+	Self& operator++() { --_it; return *this; }
 	Self& operator++(int) { Self temp(_it); --_it; return temp; }
-	Self& operator--() { ++_it; return this; }
+	Self& operator--() { ++_it; return *this; }
 	Self& operator--(int) { Self temp(_it); ++_it; return temp; }
 	
-	bool operator!=(const Self& s) { return _it != s._it; }
-	bool operator==(const Self& s) { return _it == s._it; }
+	bool operator!=(const Self& s)const { return _it != s._it; }
+	bool operator==(const Self& s)const { return _it == s._it; }
 };
 
 template <class T>
 class List
 {
+public:
 	typedef ListNode<T> Node;
 	typedef Node* pNode;
 
@@ -345,26 +347,16 @@ public:
 
 void TestList()
 {
-#if 0
-	ListNode<int> ln(2);
-	ListIterator<int, int&, int*> it;
-	ListReverseIterator<int, int&, int*, ListIterator<int, int&, int*>> rit;
+	List<int > l;
+	l.push_back(1);
+	l.push_back(2);
+	l.push_back(3);
+	l.push_back(4);
+	l.push_back(5);
 
-	List<int> l1;
-	List<int> l2(5, 1);
-	List<int> l3(l2);
-
-	l1.push_back(1);
-	l1.push_back(2);
-	l1.push_back(3);
-	l1.push_back(4);
-	l1.push_back(5);
-	l1.pop_back();
-	l1.insert(l1.begin(), 6);
-	l1.erase(l1.begin());
-	l1.PrintList();
-	l1.clear();
-	cout << "size: " << l1.size() << endl;
-	cout << "empty: " << l1.empty() << endl;
-#endif
+	for (List<int>::ReverseIterator it = l.rbegin(); it != l.rend(); ++it)
+	{
+		std::cout << *it << ' ';
+	}
+	std::cout << std::endl;
 }

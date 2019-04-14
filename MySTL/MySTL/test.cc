@@ -3,12 +3,11 @@
 #include "list.hpp"
 #include "RBTree.hpp"
 #include "Map.hpp"
+#include <list>
 using namespace std;
 
 int main()
 {
-	RBTNode<int> *p = nullptr;
-	MapIterator<int> mi(p);
-	MapIterator<int> mi2(mi);
+	Map<int> m;
 	return 0;
 }
