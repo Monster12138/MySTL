@@ -21,10 +21,10 @@ struct RBTNode
 	{}
 };
 
-template<class V>
+template<class T, class KeyOfValue>
 class RBTree
 {
-	typedef RBTNode<V> Node;
+	typedef RBTNode<T> Node;
 	typedef Node* PNode;
 
 private:
@@ -43,7 +43,7 @@ public:
 		Destory(GetRoot());
 	}
 
-	bool Insert(const V& data)
+	bool Insert(const T& data)
 	{
 		PNode& pRoot = GetRoot();
 		if (nullptr == pRoot)
@@ -60,9 +60,9 @@ public:
 			while (cur)
 			{
 				pParent = cur;
-				if (data < cur->_data)
+				if (KeyOfValue(data) < KeyOfValue(cur->_data))
 					cur = cur->_left;
-				else if (data > cur->_data)
+				else if (KeyOfValue(data) > KeyOfValue(cur->_data))
 					cur = cur->_right;
 				else
 					return false;
@@ -70,7 +70,7 @@ public:
 
 			//≤Â»Î
 			cur = new Node(data);
-			if (data < pParent->_data)
+			if (KeyOfValue(data) < KeyOfValue(pParent->_data))
 				pParent->_left = cur;
 			else
 				pParent->_right = cur;
@@ -321,14 +321,7 @@ private:
 
 void TestRBTree()
 {
-	int a[] = { 5, 3, 4, 1, 7, 8, 2, 6, 0, 9 };
-	RBTree<int> t;
-	for (auto e : a)
-	{
-		t.Insert(e);
-	}
-	t.Inorder();
-	t.IsRBTree();
+	
 }
 
 
