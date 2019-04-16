@@ -8,6 +8,6 @@ using namespace std;
 
 int main()
 {
-	Map<int> m;
+	MapTest();
 	return 0;
 }

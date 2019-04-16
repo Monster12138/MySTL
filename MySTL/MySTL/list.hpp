@@ -28,9 +28,9 @@ public:
 	Ref operator*()const { return (*_ptr)._value; }
 	Ptr operator->()const { return &(operator*()); }
 
-	Self& operator++() { _ptr = _ptr->_next; return *this; }
+	Self operator++() { _ptr = _ptr->_next; return *this; }
 	Self& operator++(int) { Self tmp(*this); _ptr = _ptr->_next; return tmp; }
-	Self& operator--() { _ptr = _ptr->_pre; return *this; }
+	Self operator--() { _ptr = _ptr->_pre; return *this; }
 	Self& operator--(int) { Self tmp(*this); _ptr = _ptr->_pre; return tmp; }
 
 	bool operator!=(const Self& l)const { return _ptr != l._ptr; }
@@ -64,9 +64,9 @@ public:
 		return &(operator*());
 	}
 
-	Self& operator++() { --_it; return *this; }
+	Self operator++() { --_it; return *this; }
 	Self& operator++(int) { Self temp(_it); --_it; return temp; }
-	Self& operator--() { ++_it; return *this; }
+	Self operator--() { ++_it; return *this; }
 	Self& operator--(int) { Self temp(_it); ++_it; return temp; }
 	
 	bool operator!=(const Self& s)const { return _it != s._it; }

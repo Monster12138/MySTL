@@ -21,14 +21,174 @@ struct RBTNode
 	{}
 };
 
-template<class T, class KeyOfValue>
+template<typename T, typename Ref , typename Ptr>
+class RBTreeIterator
+{
+	typedef RBTNode<T> Node;
+	typedef Node* PNode;
+	typedef RBTreeIterator<T, Ref, Ptr> Self;
+private:
+	PNode _p;
+
+public:
+	RBTreeIterator(PNode p):_p(p) {}
+	RBTreeIterator(const Self& s):_p(s._p) {}
+
+	Ref operator*()const { return _p->_data; }
+	Ptr operator->()const { return &(operator*()); }
+
+	Self& operator=(const Self& i)
+	{
+		_p = i._p;
+	}
+
+	Self operator++()
+	{
+		Self tmp(*this);
+		Increasement();
+		return tmp;
+	}
+
+	Self& operator++(int)
+	{
+		Increasement();
+		return *this;
+	}
+
+	Self& operator--()
+	{
+		Self tmp(*this);
+		Decreasement();
+		return tmp;
+	}
+
+	Self& operator--(int)
+	{
+		Decreasement();
+		return *this;
+	}
+
+	bool operator!=(const Self& s)const { return _p != s._p; }
+
+	bool operator==(const Self& s)const { return !(*this != s); }
+private:
+	void Increasement()
+	{
+		//1.当_p结点有右子树时，去右子树中找最小的
+		if (_p && _p->_right)
+		{
+			_p = _p->_right;
+			while (_p->_left)
+				_p = _p->_left;
+		}
+		else //2.当_p结点无右子树时，往上找第一个其右孩子不是当前结点的结点
+		{
+			PNode parent = _p->_parent;
+			while (parent && parent->_right == _p)
+			{
+				_p = _p->_parent;
+				parent = _p->_parent;
+			}
+
+			/*
+			当迭代器初始指向根节点，在结束上面的循环后，迭代器就指向了head结点
+			而迭代器的parent才指向根节点，这个时候不需要再让_p = parent了
+			*/
+			if (_p->_right != parent)
+				_p = parent;
+		}
+	}
+
+	void Decreasement()
+	{
+		if (_p->_parent->_parent == _p && _p->_color == RED)	//1.该节点是head节点
+		{
+			_p = _p->_right;
+		}
+		else if (_p && _p->_left) //2.该节点有左子树，就去左子树中找最大的
+		{
+			_p = _p->_left;
+			while (_p->_right)
+				_p = _p->_right;
+		}
+		else //3.该节点无左子树，就往上找第一个其左孩子不是当前节点的节点
+		{
+			PNode parent = _p->_parent;
+			while (parent->_left == _p)
+			{
+				_p = parent;
+				parent = _p->_parent;
+			}
+
+			_p = parent;
+		}
+	}
+};
+
+template<typename T, typename Ref, typename Ptr, class Iterator>
+class RBTreeIteratorReverse
+{
+	typedef RBTNode<T> Node;
+	typedef Node* PNode;
+	typedef RBTreeIteratorReverse<T, Ref, Ptr, Iterator> Self;
+private:
+	Iterator _it;
+
+public:
+	RBTreeIteratorReverse(const Iterator& it) :_it(it) {}
+	RBTreeIteratorReverse(const Self& s) :_it(s._it) {}
+
+	Ref operator*()const
+	{
+		Iterator tmp(_it);
+		return (--tmp).operator*();
+	}
+	Ptr operator->()const { return &(operator*()); }
+
+	Self operator++()
+	{
+		RBTreeIteratorReverse tmp(_it);
+		--(tmp._it);
+		return tmp;
+	}
+
+	Self& operator++(int)
+	{
+		--_it;
+		return *this;
+	}
+
+	Self& operator--()
+	{
+		RBTreeIteratorReverse  tmp(_it);
+		++(tmp._it);
+		return tmp;
+	}
+
+	Self& operator--(int)
+	{
+		++_it;
+		return *this;
+	}
+
+	bool operator!=(const Self& s)const { return _it != s._it; }
+
+	bool operator==(const Self& s)const { return !(*this != s); }
+};
+
+
+template<class K, class T, class KeyOfValue>
 class RBTree
 {
 	typedef RBTNode<T> Node;
 	typedef Node* PNode;
+public:
+	typedef RBTreeIterator<T, T&, T*> Iterator;
+	typedef RBTreeIteratorReverse<T, T&, T*, Iterator> ReverseIterator;
 
 private:
 	PNode _phead;
+	unsigned int _size;
 public:
 	RBTree()
 	{
@@ -36,20 +196,25 @@ public:
 		_phead->_left = _phead;
 		_phead->_right = _phead;
 		_phead->_parent = nullptr;
+		_size = 0;
 	}
 
 	~RBTree()
 	{
-		Destory(GetRoot());
+		_Destory(GetRoot());
 	}
 
-	bool Insert(const T& data)
+	std::pair<Iterator, bool> Insert(const T& data)
 	{
+		PNode thisNode = nullptr;
 		PNode& pRoot = GetRoot();
 		if (nullptr == pRoot)
 		{
 			pRoot = new Node(data, BLACK);
 			pRoot->_parent = _phead;
+
+			++_size;
+			thisNode = pRoot;
 		}
 		else
 		{
@@ -60,17 +225,17 @@ public:
 			while (cur)
 			{
 				pParent = cur;
-				if (KeyOfValue(data) < KeyOfValue(cur->_data))
+				if (KeyOfValue()(data) < KeyOfValue()(cur->_data))
 					cur = cur->_left;
-				else if (KeyOfValue(data) > KeyOfValue(cur->_data))
+				else if (KeyOfValue()(data) > KeyOfValue()(cur->_data))
 					cur = cur->_right;
 				else
-					return false;
+					return make_pair(Iterator(thisNode), false);
 			}
 
 			//插入
-			cur = new Node(data);
-			if (KeyOfValue(data) < KeyOfValue(pParent->_data))
+			thisNode = cur = new Node(data);
+			if (KeyOfValue()(data) < KeyOfValue()(pParent->_data))
 				pParent->_left = cur;
 			else
 				pParent->_right = cur;
@@ -97,14 +262,14 @@ public:
 						//情况三：
 						if (cur == pParent->_right)
 						{
-							RouteL(pParent);
+							_RouteL(pParent);
 							std::swap(cur, pParent);
 						}
 						
 						//情况二
 						pParent->_color = BLACK;
 						grandfa->_color = RED;
-						RouteR(grandfa);
+						_RouteR(grandfa);
 					}
 				}
 				else
@@ -123,22 +288,23 @@ public:
 					{
 						if (cur == pParent->_left)
 						{
-							RouteR(pParent);
+							_RouteR(pParent);
 							std::swap(cur, pParent);
 						}
 
 						pParent->_color = BLACK;
 						grandfa->_color = RED;
-						RouteL(grandfa);
+						_RouteL(grandfa);
 					}
 				}
 			}
 		}
 
 		pRoot->_color = BLACK;
-		_phead->_left = LeftMost();
-		_phead->_right = RightMost();
-		return true;
+		_phead->_left = _LeftMost();
+		_phead->_right = _RightMost();
+		++_size;
+		return make_pair(Iterator(thisNode), true);
 	}
 
 	void Inorder()
@@ -172,13 +338,66 @@ public:
 
 		return _IsRBTree(pRoot, black_count, 0);
 	}
+
+	Iterator Find(const K& key)
+	{
+		PNode cur = GetRoot();
+		while (cur)
+		{
+			if (key == KeyOfValue()(cur->_data))
+				return Iterator(cur);
+			else if (key < KeyOfValue()(cur->_data))
+				cur = cur->_left;
+			else
+				cur = cur->_right;
+		}
+
+		return Iterator(_phead);
+	}
+
+	Iterator Begin()
+	{
+		return Iterator(_phead->_left);
+	}
+
+	Iterator End()
+	{
+		return Iterator(_phead);
+	}
+
+	ReverseIterator rBegin()
+	{
+		return ReverseIterator(_phead->_right);
+	}
+
+	ReverseIterator rEnd()
+	{
+		return ReverseIterator(_phead);
+	}
+	void Clear()
+	{
+		_Destory(GetRoot());
+		_phead->_left = _phead;
+		_phead->_right = _phead;
+		_size = 0;
+	}
+
+	unsigned int Size()const
+	{
+		return _size;
+	}
+
+	bool Empty()const
+	{
+		return 0 == _size;
+	}
 private:
 	PNode& GetRoot()
 	{
 		return _phead->_parent;
 	}
 
-	PNode LeftMost()
+	PNode _LeftMost()
 	{
 		PNode pRoot = GetRoot();
 		if (nullptr == pRoot)
@@ -191,7 +410,7 @@ private:
 		return cur;
 	}
 
-	PNode RightMost()
+	PNode _RightMost()
 	{
 		PNode pRoot = GetRoot();
 		if (nullptr == pRoot)
@@ -205,7 +424,7 @@ private:
 	}
 
 	//左单旋
-	void RouteL(PNode pParent)
+	void _RouteL(PNode pParent)
 	{
 		PNode pSubR = pParent->_right;
 		
@@ -237,7 +456,7 @@ private:
 		pParent->_parent = pSubR;
 	}
 
-	void RouteR(PNode pParent)
+	void _RouteR(PNode pParent)
 	{
 		PNode pSubL = pParent->_left;
 
@@ -278,12 +497,12 @@ private:
 		}
 	}
 
-	void Destory(PNode& pRoot)
+	void _Destory(PNode& pRoot)
 	{
 		if (pRoot)
 		{
-			Destory(pRoot->_left);
-			Destory(pRoot->_right);
+			_Destory(pRoot->_left);
+			_Destory(pRoot->_right);
 			delete pRoot;
 			pRoot = nullptr;
 		}
@@ -319,10 +538,7 @@ private:
 	}
 };
 
-void TestRBTree()
-{
-	
-}
+
 
 
 
